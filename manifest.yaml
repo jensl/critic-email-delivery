@@ -1,0 +1,43 @@
+authors:
+  - Jens Widell <jens@critic-review.org>
+description: Email notifications
+
+package:
+  type: python
+  entrypoints:
+    outgoing: emails.outgoing:main
+  dependencies:
+    - aiosmtplib
+
+roles:
+  - type: subscription
+    description: Handle review events
+    channel: email/outgoing
+    entrypoint: outgoing
+
+settings:
+  smtp:
+    configured:
+      description: Enables email delivery.
+      value: false
+    address:
+      host:
+        description: SMTP server hostname.
+      port:
+        description: SMTP server port.
+        value: 25
+    use_smtps:
+      description: Use/require SMTPS / "TLS Wrapper" when connecting to the SMTP server.
+      value: false
+    use_starttls:
+      description:
+        Use/require the STARTTLS command to switch the SMTP server connection to
+        TLS mode after the initial hand-shake.
+      value: false
+    credentials:
+      username:
+        description: SMTP server credentials (username).
+        privileged: true
+      password:
+        description: SMTP server credentials (password).
+        privileged: true
