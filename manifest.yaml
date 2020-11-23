@@ -6,7 +6,8 @@ description: Email notifications
 package:
   type: python
   entrypoints:
-    outgoing: emails.outgoing:main
+    outgoing:
+      target: emails.outgoing:main
   dependencies:
     - aiosmtplib
 
