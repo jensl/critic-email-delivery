@@ -55,7 +55,7 @@ async def resolve_addresses(
 
 
 async def handle_message(
-    smtp: aiosmtplib.SMTP, critic: api.critic.Critic, message: Message
+    smtp: aiosmtplib.SMTP, critic: api.critic.Critic, message: Message, sender: str
 ) -> None:
     assert isinstance(message.payload, email.message.EmailMessage)
     email_message = message.payload
@@ -104,7 +104,7 @@ async def handle_message(
             del email_message["cc"]
 
         try:
-            await smtp.send_message(email_message)
+            await smtp.send_message(email_message, sender)
         except aiosmtplib.SMTPRecipientsRefused as error:
             recipients = []
             for nested_error in error.recipients:
@@ -151,6 +151,7 @@ async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
     try:
         hostname = settings["smtp.address.host"]
         port = settings["smtp.address.port"]
+        sender = settings["smtp.sender"]
 
         if not hostname or not isinstance(hostname, str):
             raise ConfigurationError("No SMTP server hostname set")
@@ -158,12 +159,15 @@ async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
         if not port or not isinstance(port, int):
             raise ConfigurationError("No SMTP server port set")
 
+        if not sender or not isinstance(sender, str):
+            raise ConfigurationError("No sender email address set")
+
         async with aiosmtplib.SMTP(hostname=hostname, port=port) as smtp:
             logger.info("Connected to %s:%d", hostname, port)
 
             async for message_handle in subscription.messages:
                 async with message_handle as message:
-                    await handle_message(smtp, critic, message)
+                    await handle_message(smtp, critic, message, sender)
     except Exception as error:
         logger.error("Will reject all outgoing mail: %s", error)
         async for message_handle in subscription.messages:

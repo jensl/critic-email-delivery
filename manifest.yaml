@@ -49,3 +49,5 @@ settings:
       password:
         description: SMTP server credentials (password).
         privileged: true
+    sender:
+      description: Email address used as `Sender:` in outgoing emails.

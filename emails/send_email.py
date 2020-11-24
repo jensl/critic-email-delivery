@@ -106,7 +106,7 @@ async def send_email(critic: api.critic.Critic, request: Request, sender: str) -
 
 
 async def main(critic: api.critic.Critic, endpoint: Endpoint) -> None:
-    sender = await api.systemsetting.get(critic, "system.email")
+    sender = await api.systemsetting.get(critic, "smtp.sender")
 
     if sender:
         assert isinstance(sender, str)
