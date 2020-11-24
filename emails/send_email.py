@@ -92,7 +92,7 @@ async def send_email(critic: api.critic.Critic, request: Request, sender: str) -
                     Feedback,
                     (await asyncio.wait_for(delivery_notification.wait(), 10)).payload,
                 )
-                logger.error(feedback)
+                logger.error(f"{feedback=}")
             except asyncio.TimeoutError as error:
                 feedback = {
                     "sent": False,
