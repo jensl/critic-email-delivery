@@ -165,6 +165,7 @@ async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
                 async with message_handle as message:
                     await handle_message(smtp, critic, message)
     except Exception as error:
+        logger.info("Will reject all outgoing mail: %s", error)
         async for message_handle in subscription.messages:
             async with message_handle as message:
                 await reject_message(critic, message, str(error))
