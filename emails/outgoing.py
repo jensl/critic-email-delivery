@@ -1,7 +1,7 @@
 import aiosmtplib
 import email.message
 import logging
-from email.headerregistry import Address, AddressHeader
+from email.headerregistry import AddressHeader
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -11,8 +11,8 @@ from critic import pubsub
 from critic.extension import Message, Subscription
 
 
-def generate_address(display_name: str, addr_spec: str) -> str:
-    if '"' in display_name:
+def generate_address(display_name: Optional[str], addr_spec: str) -> str:
+    if display_name is None or '"' in display_name:
         return addr_spec
     return f'"{display_name}" <{addr_spec}>'
 
@@ -74,7 +74,7 @@ async def handle_message(
                 return
             publish_messages.append(
                 pubsub.PublishMessage(
-                    pubsub.ChannelName("email/sent"),
+                    pubsub.ChannelName(f"email/sent/{message_id}"),
                     pubsub.Payload({"message_id": message_id, "sent": sent, **extra}),
                 )
             )
@@ -119,21 +119,52 @@ async def handle_message(
             feedback(sent=True)
     finally:
         if publish_messages:
-            await pubsub.publish(critic, "email-delivery/outgoing", *publish_messages)
+            await pubsub.publish(critic, "EmailDelivery/outgoing", *publish_messages)
+
+
+async def reject_message(
+    critic: api.critic.Critic, message: Message, reason: str
+) -> None:
+    assert isinstance(message.payload, email.message.EmailMessage)
+    email_message = message.payload
+
+    if "message-id" not in email_message["message-id"]:
+        return
+
+    message_id = email_message["message-id"]
+
+    publish_message = pubsub.PublishMessage(
+        pubsub.ChannelName(f"email/sent/{message_id}"),
+        pubsub.Payload({"message_id": message_id, "sent": False, reason: reason}),
+    )
+
+    await pubsub.publish(critic, "EmailDelivery/outgoing", publish_message)
+
+
+class ConfigurationError(Exception):
+    pass
 
 
 async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
-    settings = await api.systemsetting.get(critic, prefix="smtp")
+    settings = await api.systemsetting.getPrefixed(critic, "smtp")
 
-    hostname = settings["smtp.address.host"]
-    assert isinstance(hostname, str)
+    try:
+        hostname = settings["smtp.address.host"]
+        port = settings["smtp.address.port"]
 
-    port = settings["smtp.address.port"]
-    assert isinstance(port, int)
+        if not hostname or not isinstance(hostname, str):
+            raise ConfigurationError("No SMTP server hostname set")
 
-    async with aiosmtplib.SMTP(hostname=hostname, port=port) as smtp:
-        logger.info("Connected to %s:%d", hostname, port)
+        if not port or not isinstance(port, int):
+            raise ConfigurationError("No SMTP server port set")
 
+        async with aiosmtplib.SMTP(hostname=hostname, port=port) as smtp:
+            logger.info("Connected to %s:%d", hostname, port)
+
+            async for message_handle in subscription.messages:
+                async with message_handle as message:
+                    await handle_message(smtp, critic, message)
+    except Exception as error:
         async for message_handle in subscription.messages:
             async with message_handle as message:
-                await handle_message(smtp, critic, message)
+                await reject_message(critic, message, str(error))

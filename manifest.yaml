@@ -8,6 +8,8 @@ package:
   entrypoints:
     outgoing:
       target: emails.outgoing:main
+    send_email:
+      target: emails.send_email:main
   dependencies:
     - aiosmtplib
 
@@ -16,6 +18,10 @@ roles:
     description: Handle review events
     channel: email/outgoing
     entrypoint: outgoing
+  - type: endpoint
+    description: Endpoint for sending test emails
+    name: send-email
+    entrypoint: send_email
 
 settings:
   smtp:
