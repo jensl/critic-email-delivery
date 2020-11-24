@@ -103,5 +103,6 @@ async def main(critic: api.critic.Critic, endpoint: Endpoint) -> None:
 
         sender = f"critic@{hostname}"
 
-    async for request in endpoint.requests:
-        await send_email(critic, request, sender)
+    async for request_handle in endpoint.requests:
+        async with request_handle as request:
+            await send_email(critic, request, sender)
