@@ -33,7 +33,7 @@ async def send_email(critic: api.critic.Critic, request: Request, sender: str) -
     if request.method != "POST":
         raise HTTPBadRequest("Expected method: POST")
 
-    payload = cast(Mapping[str, Any], request.json())
+    payload = cast(Mapping[str, Any], await request.json())
     if not isinstance(cast(object, payload), dict):
         raise HTTPBadRequest(f"Invalid payload: must be object (got: {payload!r})")
 
