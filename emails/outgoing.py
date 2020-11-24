@@ -133,7 +133,7 @@ async def reject_message(
         logger.error(email_message.as_string())
         return
 
-    message_id = email_message["message-id"]
+    message_id = email_message["message-id"].lstrip("<").rstrip(">")
 
     logger.error(f"rejecting message-id={message_id}")
 
