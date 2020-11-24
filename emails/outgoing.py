@@ -152,6 +152,8 @@ async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
         hostname = settings["smtp.address.host"]
         port = settings["smtp.address.port"]
 
+        logger.error(f"{hostname=} {port=}")
+
         if not hostname or not isinstance(hostname, str):
             raise ConfigurationError("No SMTP server hostname set")
 
