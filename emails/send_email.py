@@ -1,6 +1,9 @@
 import asyncio
 import email.message
+import logging
 from typing import Any, Mapping, Optional, TypedDict, cast
+
+logger = logging.getLogger(__name__)
 
 from critic import api
 from critic.extension import Endpoint, Request
@@ -88,6 +91,7 @@ async def send_email(critic: api.critic.Critic, request: Request, sender: str) -
                 feedback = cast(
                     Feedback, await asyncio.wait_for(delivery_notification.wait(), 10)
                 )
+                logger.error(feedback)
             except asyncio.TimeoutError as error:
                 feedback = {
                     "sent": False,
