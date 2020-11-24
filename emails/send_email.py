@@ -38,13 +38,13 @@ async def send_email(critic: api.critic.Critic, request: Request, sender: str) -
         raise HTTPBadRequest(f"Invalid payload: must be object (got: {payload!r})")
 
     recipient = payload.get("recipient")
-    if isinstance(recipient, str):
+    if not isinstance(recipient, str):
         raise HTTPBadRequest(
             f"Invalid payload['recipient']: must be string (got: {recipient!r})"
         )
 
     subject = payload.get("subject")
-    if isinstance(subject, str):
+    if not isinstance(subject, str):
         raise HTTPBadRequest(
             f"Invalid payload['subject']: must be string (got: {subject!r})"
         )
