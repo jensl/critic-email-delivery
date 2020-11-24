@@ -129,7 +129,7 @@ async def reject_message(
     email_message = message.payload
 
     if "message-id" not in email_message["message-id"]:
-        logger.error("no message-id, rejecting silently")
+        logger.error("no message-id, rejecting silently!")
         logger.error(email_message.as_string())
         return
 
