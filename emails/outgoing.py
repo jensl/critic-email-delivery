@@ -129,17 +129,13 @@ async def reject_message(
     email_message = message.payload
 
     if "message-id" not in email_message:
-        logger.error("no message-id, rejecting silently!")
-        logger.error(email_message.as_string())
         return
 
     message_id = email_message["message-id"].lstrip("<").rstrip(">")
 
-    logger.error(f"rejecting message-id={message_id}")
-
     publish_message = pubsub.PublishMessage(
         pubsub.ChannelName(f"email/sent/{message_id}"),
-        pubsub.Payload({"message_id": message_id, "sent": False, reason: reason}),
+        pubsub.Payload({"message_id": message_id, "sent": False, "reason": reason}),
     )
 
     await pubsub.publish(critic, "EmailDelivery/outgoing", publish_message)
@@ -156,8 +152,6 @@ async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
         hostname = settings["smtp.address.host"]
         port = settings["smtp.address.port"]
 
-        logger.error(f"{hostname=} {port=}")
-
         if not hostname or not isinstance(hostname, str):
             raise ConfigurationError("No SMTP server hostname set")
 
@@ -173,7 +167,5 @@ async def main(critic: api.critic.Critic, subscription: Subscription) -> None:
     except Exception as error:
         logger.error("Will reject all outgoing mail: %s", error)
         async for message_handle in subscription.messages:
-            logger.error(f"{message_handle=}")
             async with message_handle as message:
-                logger.error(f"{message=}")
                 await reject_message(critic, message, str(error))
