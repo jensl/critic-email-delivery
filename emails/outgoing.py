@@ -128,7 +128,7 @@ async def reject_message(
     assert isinstance(message.payload, email.message.EmailMessage)
     email_message = message.payload
 
-    if "message-id" not in email_message["message-id"]:
+    if "message-id" not in email_message:
         logger.error("no message-id, rejecting silently!")
         logger.error(email_message.as_string())
         return
