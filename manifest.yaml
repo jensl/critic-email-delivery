@@ -1,7 +1,7 @@
 name: EmailDelivery
 authors:
   - Jens Widell <jens@critic-review.org>
-description: Email notifications
+description: Email delivery
 
 package:
   type: python
