@@ -37,13 +37,12 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1),
     flexGrow: 0,
     marginTop: "auto",
-    marginBottom: "auto",
+    marginBottom: theme.spacing(1),
   },
 }))
 
 const Contents: React.FunctionComponent<{}> = () => {
   const classes = useStyles()
-  const dispatch = useDispatch()
   const critic = useCritic()
   const {
     isModified,
